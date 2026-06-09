@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from sqlalchemy import Column, Integer, String, DateTime, Text, Enum as SAEnum, Float, Boolean
+from sqlalchemy import Column, Integer, String, DateTime, Text, Float, create_engine
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.sql import func
@@ -15,47 +15,38 @@ class Base(DeclarativeBase):
     pass
 
 
-class User(Base):
-    __tablename__ = "users"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    username = Column(String(50), unique=True, nullable=False, index=True)
-    hashed_password = Column(String(255), nullable=False)
-    nickname = Column(String(100), default="")
-    avatar_url = Column(String(500), default="")
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
-
-
 class Conversation(Base):
+    """??? - ? device_id ??"""
     __tablename__ = "conversations"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, nullable=False, index=True)
-    title = Column(String(200), default="新对话")
+    device_id = Column(String(100), nullable=False, index=True, comment="??????")
+    title = Column(String(200), default="???")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
 
 class Message(Base):
+    """??? - ??????????????"""
     __tablename__ = "messages"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     conversation_id = Column(Integer, nullable=False, index=True)
-    role = Column(SAEnum("user", "assistant", "system", name="message_role"), nullable=False)
+    role = Column(String(20), nullable=False, comment="user / assistant")
     content = Column(Text, nullable=False)
-    emotion_label = Column(String(50), default="")        # 情绪标签
-    emotion_score = Column(Float, default=0.0)            # 情绪强度
+    emotion_label = Column(String(50), default="", comment="????: happy/aggrieved/irritated/anxious/lonely/tired/angry/calm")
+    emotion_score = Column(Float, default=0.0, comment="???? 0-1")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
 class EmotionRecord(Base):
+    """????? - ??????"""
     __tablename__ = "emotion_records"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, nullable=False, index=True)
+    device_id = Column(String(100), nullable=False, index=True)
     message_id = Column(Integer, nullable=False)
-    label = Column(String(50), nullable=False)            # happy, sad, angry, anxious, neutral...
+    label = Column(String(50), nullable=False)
     score = Column(Float, default=0.0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 

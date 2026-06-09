@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="trends-page">
     <div class="trends-header">
       <el-button @click="router.push('/')">
@@ -36,8 +36,14 @@ const trends = ref<any[]>([]);
 const chartRef = ref<HTMLElement | null>(null);
 
 const emotionLabelMap: Record<string, string> = {
-  happy: "开心", sad: "难过", angry: "愤怒", anxious: "焦虑",
-  neutral: "平静", surprised: "惊讶", fearful: "恐惧", disgusted: "厌恶",
+  happy: "开心",
+  aggrieved: "委屈",
+  irritated: "烦躁",
+  anxious: "焦虑",
+  lonely: "孤单",
+  tired: "第惫",
+  angry: "生气",
+  calm: "平淡",
 };
 
 const emotionStats = computed(() => {
@@ -70,9 +76,14 @@ function renderChart() {
         itemStyle: {
           color: (params: any) => {
             const map: Record<string, string> = {
-              happy: "#67c23a", sad: "#909399", angry: "#f56c6c",
-              anxious: "#e6a23c", neutral: "#409eff", surprised: "#e6a23c",
-              fearful: "#f56c6c", disgusted: "#f56c6c",
+              happy: "#67c23a",
+              aggrieved: "#e6a23c",
+              irritated: "#e6a23c",
+              anxious: "#e6a23c",
+              lonely: "#909399",
+              tired: "#909399",
+              angry: "#f56c6c",
+              calm: "#409eff",
             };
             return map[data[params.dataIndex]?.label] || "#409eff";
           },

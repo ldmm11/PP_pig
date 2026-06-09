@@ -1,32 +1,9 @@
 from pydantic import BaseModel, Field
 
 
-# ===== Auth =====
-class Token(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
-
-
-class LoginRequest(BaseModel):
-    username: str
-    password: str
-
-
-class RegisterRequest(BaseModel):
-    username: str = Field(..., min_length=2, max_length=50)
-    password: str = Field(..., min_length=6, max_length=128)
-    nickname: str = ""
-
-
-class UserInfo(BaseModel):
-    id: int
-    username: str
-    nickname: str
-    avatar_url: str
-
-
 # ===== Chat =====
 class ChatRequest(BaseModel):
+    device_id: str = Field(..., min_length=1, max_length=100, description="??????")
     conversation_id: int | None = None
     message: str = Field(..., max_length=5000)
 
@@ -56,6 +33,7 @@ class MessageItem(BaseModel):
 
 # ===== Emotion =====
 class EmotionAnalysisRequest(BaseModel):
+    device_id: str = Field(..., min_length=1, max_length=100)
     text: str = Field(..., max_length=5000)
 
 

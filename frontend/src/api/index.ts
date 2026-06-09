@@ -1,42 +1,24 @@
-﻿import axios from "axios";
-import { ElMessage } from "element-plus";
+import axios from "axios";
 
 const http = axios.create({
   baseURL: "/api/v1",
   timeout: 60000,
 });
 
+// Automatically inject device_id from localStorage
 http.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  const deviceId = localStorage.getItem("device_id");
+  if (deviceId) {
+    if (config.method === "get" || config.method === "GET") {
+      config.params = { ...config.params, device_id: deviceId };
+    } else if (config.data && typeof config.data === "object" && !(config.data instanceof FormData)) {
+      config.data = { ...config.data, device_id: deviceId };
+    }
   }
   return config;
 });
 
-http.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      window.location.href = "/login";
-    }
-    const msg = error.response?.data?.detail || error.message || "请求失败";
-    ElMessage.error(msg);
-    return Promise.reject(error);
-  }
-);
-
 export default http;
-
-// ===== Auth API =====
-export const authApi = {
-  login: (data: { username: string; password: string }) =>
-    http.post("/auth/login", data),
-  register: (data: { username: string; password: string; nickname?: string }) =>
-    http.post("/auth/register", data),
-  me: () => http.get("/auth/me"),
-};
 
 // ===== Chat API =====
 export const chatApi = {
@@ -48,6 +30,5 @@ export const chatApi = {
 
 // ===== Emotion API =====
 export const emotionApi = {
-  analyze: (data: { text: string }) => http.post("/emotion/analyze", data),
   trends: () => http.get("/emotion/trends"),
 };

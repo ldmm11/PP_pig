@@ -6,18 +6,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.database import Conversation, Message, EmotionRecord
 
 
-async def create_conversation(db: AsyncSession, user_id: int, title: str = "新对话") -> Conversation:
-    conv = Conversation(user_id=user_id, title=title)
+async def create_conversation(db: AsyncSession, device_id: str, title: str = "???") -> Conversation:
+    """????????"""
+    conv = Conversation(device_id=device_id, title=title)
     db.add(conv)
     await db.commit()
     await db.refresh(conv)
     return conv
 
 
-async def get_user_conversations(db: AsyncSession, user_id: int) -> list[Conversation]:
+async def get_device_conversations(db: AsyncSession, device_id: str) -> list[Conversation]:
+    """?????????????????"""
     result = await db.execute(
         select(Conversation)
-        .where(Conversation.user_id == user_id)
+        .where(Conversation.device_id == device_id)
         .order_by(desc(Conversation.updated_at))
     )
     return list(result.scalars().all())
@@ -31,6 +33,7 @@ async def save_message(
     emotion_label: str = "",
     emotion_score: float = 0.0,
 ) -> Message:
+    """??????"""
     msg = Message(
         conversation_id=conversation_id,
         role=role,
@@ -45,6 +48,7 @@ async def save_message(
 
 
 async def get_conversation_messages(db: AsyncSession, conversation_id: int) -> list[Message]:
+    """???????????????"""
     result = await db.execute(
         select(Message)
         .where(Message.conversation_id == conversation_id)
@@ -54,19 +58,21 @@ async def get_conversation_messages(db: AsyncSession, conversation_id: int) -> l
 
 
 async def save_emotion_record(
-    db: AsyncSession, user_id: int, message_id: int, label: str, score: float
+    db: AsyncSession, device_id: str, message_id: int, label: str, score: float
 ) -> EmotionRecord:
-    record = EmotionRecord(user_id=user_id, message_id=message_id, label=label, score=score)
+    """????????????"""
+    record = EmotionRecord(device_id=device_id, message_id=message_id, label=label, score=score)
     db.add(record)
     await db.commit()
     await db.refresh(record)
     return record
 
 
-async def get_user_emotion_trends(db: AsyncSession, user_id: int, limit: int = 50) -> list[EmotionRecord]:
+async def get_device_emotion_trends(db: AsyncSession, device_id: str, limit: int = 50) -> list[EmotionRecord]:
+    """???????????"""
     result = await db.execute(
         select(EmotionRecord)
-        .where(EmotionRecord.user_id == user_id)
+        .where(EmotionRecord.device_id == device_id)
         .order_by(desc(EmotionRecord.created_at))
         .limit(limit)
     )

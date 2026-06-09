@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="chat-layout">
     <!-- Sidebar -->
     <div class="sidebar">
@@ -23,22 +23,9 @@
         </div>
       </div>
       <div class="sidebar-footer">
-        <el-dropdown trigger="click">
-          <span class="user-info">
-            <el-icon><User /></el-icon>
-            {{ userStore.userInfo?.nickname || userStore.userInfo?.username }}
-          </span>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item @click="router.push('/trends')">
-                <el-icon><DataAnalysis /></el-icon> 情绪趋势
-              </el-dropdown-item>
-              <el-dropdown-item @click="handleLogout">
-                <el-icon><SwitchButton /></el-icon> 退出登录
-              </el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
+        <span class="device-info" @click="router.push('/trends')" style="cursor:pointer">
+          <el-icon><DataAnalysis /></el-icon> 情绪趋势
+        </span>
       </div>
     </div>
 
@@ -82,14 +69,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick, watch } from "vue";
+import { ref, onMounted, nextTick } from "vue";
 import { useRouter } from "vue-router";
-import { useUserStore } from "@/stores/user";
+import { useDeviceStore } from "@/stores/user";
 import { chatApi } from "@/api";
-import { ElMessage } from "element-plus";
 
 const router = useRouter();
-const userStore = useUserStore();
+const deviceStore = useDeviceStore();
 
 const conversations = ref<any[]>([]);
 const messages = ref<any[]>([]);
@@ -99,15 +85,26 @@ const sending = ref(false);
 const messagesRef = ref<HTMLElement | null>(null);
 
 const emotionLabelMap: Record<string, string> = {
-  happy: "开心", sad: "难过", angry: "愤怒", anxious: "焦虑",
-  neutral: "平静", surprised: "惊讶", fearful: "恐惧", disgusted: "厌恶",
+  happy: "开心",
+  aggrieved: "委屈",
+  irritated: "烦躁",
+  anxious: "焦虑",
+  lonely: "孤单",
+  tired: "第惫",
+  angry: "生气",
+  calm: "平淡",
 };
 
 function emotionTagType(label: string): string {
   const map: Record<string, string> = {
-    happy: "success", sad: "info", angry: "danger",
-    anxious: "warning", neutral: "", surprised: "warning",
-    fearful: "danger", disgusted: "danger",
+    happy: "success",
+    aggrieved: "warning",
+    irritated: "warning",
+    anxious: "warning",
+    lonely: "info",
+    tired: "info",
+    angry: "danger",
+    calm: "",
   };
   return map[label] || "";
 }
@@ -144,7 +141,10 @@ async function sendMessage() {
   if (!text) return;
   sending.value = true;
   try {
-    const res = await chatApi.send({ conversation_id: currentConvId.value ?? undefined, message: text });
+    const res = await chatApi.send({
+      conversation_id: currentConvId.value ?? undefined,
+      message: text,
+    });
     currentConvId.value = res.data.conversation_id;
     inputText.value = "";
     await loadMessages(currentConvId.value);
@@ -161,13 +161,8 @@ async function scrollToBottom() {
   }
 }
 
-function handleLogout() {
-  userStore.logout();
-  router.push("/login");
-}
-
 onMounted(async () => {
-  await userStore.fetchUserInfo();
+  deviceStore.getDeviceId();
   await loadConversations();
 });
 </script>
@@ -214,13 +209,11 @@ onMounted(async () => {
 .sidebar-footer {
   padding: 12px 16px;
   border-top: 1px solid #e4e7ed;
-  cursor: pointer;
-}
-.user-info {
   display: flex;
   align-items: center;
   gap: 6px;
   font-size: 14px;
+  color: #409eff;
 }
 .main-area {
   flex: 1;
