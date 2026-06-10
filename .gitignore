@@ -9,3 +9,10 @@ backend/.env
 *.db
 .DS_Store
 .idea/
+
+.env
+.env.example
+.venv/
+frontend/node_modules/
+__pycache__/
+*.pyc

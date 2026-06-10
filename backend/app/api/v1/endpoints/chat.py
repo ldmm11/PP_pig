@@ -14,7 +14,7 @@ from app.services.chat_service import (
 )
 from app.services.llm_service import deepseek_client
 
-router = APIRouter(prefix="/chat", tags=["??"])
+router = APIRouter(prefix="/chat", tags=["会话管理"])
 
 
 @router.post("/send", response_model=ChatResponse)

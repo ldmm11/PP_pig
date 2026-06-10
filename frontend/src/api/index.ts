@@ -1,12 +1,16 @@
 import axios from "axios";
+import { ElMessage } from "element-plus";
 
-const http = axios.create({
-  baseURL: "/api/v1",
-  timeout: 60000,
-});
+const API_BASE = import.meta.env.VITE_API_BASE || "/api/v1";
 
-// Automatically inject device_id from localStorage
+const http = axios.create({ baseURL: API_BASE, timeout: 60000 });
+
+// Inject token + device_id
 http.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = Bearer ;
+  }
   const deviceId = localStorage.getItem("device_id");
   if (deviceId) {
     if (config.method === "get" || config.method === "GET") {
@@ -18,14 +22,32 @@ http.interceptors.request.use((config) => {
   return config;
 });
 
+// 401 redirect to login
+http.interceptors.response.use(
+  (resp) => resp,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("username");
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default http;
+
+// ===== Auth API =====
+export const authApi = {
+  login: (data: { username: string; password: string }) => http.post("/auth/login", data),
+  me: () => http.get("/auth/me"),
+};
 
 // ===== Chat API =====
 export const chatApi = {
-  send: (data: { conversation_id?: number; message: string }) =>
-    http.post("/chat/send", data),
+  send: (data: { conversation_id?: number; message: string }) => http.post("/chat/send", data),
   conversations: () => http.get("/chat/conversations"),
-  messages: (convId: number) => http.get(`/chat/conversations/${convId}/messages`),
+  messages: (convId: number) => http.get(/chat/conversations//messages),
 };
 
 // ===== Emotion API =====

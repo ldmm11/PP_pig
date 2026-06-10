@@ -3,7 +3,7 @@
     <!-- Sidebar -->
     <div class="sidebar">
       <div class="sidebar-header">
-        <h3>情绪对话助手</h3>
+        <h3>楚楚的猪猪小王</h3>
       </div>
       <div class="new-chat">
         <el-button type="primary" style="width:100%" @click="startNewChat">
@@ -23,8 +23,11 @@
         </div>
       </div>
       <div class="sidebar-footer">
-        <span class="device-info" @click="router.push('/trends')" style="cursor:pointer">
+        <span @click="router.push('/trends')" style="cursor:pointer">
           <el-icon><DataAnalysis /></el-icon> 情绪趋势
+        </span>
+        <span @click="handleLogout" style="cursor:pointer;color:#f56c6c">
+          <el-icon><SwitchButton /></el-icon> 退出
         </span>
       </div>
     </div>
@@ -38,7 +41,7 @@
         </div>
         <div v-for="msg in messages" :key="msg.id" class="message-row" :class="msg.role">
           <el-avatar :size="36" :class="msg.role">
-            {{ msg.role === "user" ? "我" : "🤖" }}
+            {{ msg.role === "user" ? "楚楚" : "🤖" }}
           </el-avatar>
           <div class="bubble">
             <div class="text">{{ msg.content }}</div>
@@ -71,11 +74,12 @@
 <script setup lang="ts">
 import { ref, onMounted, nextTick } from "vue";
 import { useRouter } from "vue-router";
-import { useDeviceStore } from "@/stores/user";
+import { useDeviceStore, useUserStore } from "@/stores/user";
 import { chatApi } from "@/api";
 
 const router = useRouter();
 const deviceStore = useDeviceStore();
+const userStore = useUserStore();
 
 const conversations = ref<any[]>([]);
 const messages = ref<any[]>([]);
@@ -159,6 +163,10 @@ async function scrollToBottom() {
   if (messagesRef.value) {
     messagesRef.value.scrollTop = messagesRef.value.scrollHeight;
   }
+}
+
+function handleLogout() {
+  userStore.logout();
 }
 
 onMounted(async () => {
