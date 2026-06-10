@@ -18,11 +18,6 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str
 
-    # JWT
-    SECRET_KEY: str
-    ALGORITHM: str
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24h
-
     # DeepSeek
     DEEPSEEK_API_KEY: str
     DEEPSEEK_API_BASE: str

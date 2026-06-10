@@ -11,6 +11,7 @@ from app.services.chat_service import (
     save_message,
     save_emotion_record,
     get_conversation_messages,
+    delete_conversation,
 )
 from app.services.llm_service import deepseek_client
 
@@ -52,6 +53,13 @@ async def list_conversations(device_id: str = Query(...), db: AsyncSession = Dep
         )
         for c in convs
     ]
+
+
+@router.delete("/conversations/{conv_id}", status_code=204)
+async def remove_conversation(conv_id: int, db: AsyncSession = Depends(get_db)):
+    deleted = await delete_conversation(db, conv_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="会话不存在")
 
 
 @router.get("/conversations/{conv_id}/messages", response_model=list[MessageItem])

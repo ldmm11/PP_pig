@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="chat-layout">
     <!-- Sidebar -->
     <div class="sidebar">
@@ -20,14 +20,12 @@
         >
           <el-icon style="margin-right:6px"><ChatDotRound /></el-icon>
           <span class="conv-title">{{ conv.title }}</span>
+          <el-icon class="conv-delete" @click.stop="removeConversation(conv.id)"><Delete /></el-icon>
         </div>
       </div>
       <div class="sidebar-footer">
         <span @click="router.push('/trends')" style="cursor:pointer">
           <el-icon><DataAnalysis /></el-icon> 情绪趋势
-        </span>
-        <span @click="handleLogout" style="cursor:pointer;color:#f56c6c">
-          <el-icon><SwitchButton /></el-icon> 退出
         </span>
       </div>
     </div>
@@ -74,12 +72,11 @@
 <script setup lang="ts">
 import { ref, onMounted, nextTick } from "vue";
 import { useRouter } from "vue-router";
-import { useDeviceStore, useUserStore } from "@/stores/user";
+import { useDeviceStore } from "@/stores/user";
 import { chatApi } from "@/api";
 
 const router = useRouter();
 const deviceStore = useDeviceStore();
-const userStore = useUserStore();
 
 const conversations = ref<any[]>([]);
 const messages = ref<any[]>([]);
@@ -115,7 +112,7 @@ function emotionTagType(label: string): string {
 
 async function loadConversations() {
   try {
-    const res = await chatApi.conversations();
+    const res = await chatApi.conversations(deviceStore.deviceId);
     conversations.value = res.data;
   } catch { /* ignore */ }
 }
@@ -140,12 +137,24 @@ async function startNewChat() {
   await loadConversations();
 }
 
+async function removeConversation(convId: number) {
+  try {
+    await chatApi.delete(convId);
+    if (currentConvId.value === convId) {
+      currentConvId.value = null;
+      messages.value = [];
+    }
+    await loadConversations();
+  } catch { /* ignore */ }
+}
+
 async function sendMessage() {
   const text = inputText.value.trim();
   if (!text) return;
   sending.value = true;
   try {
     const res = await chatApi.send({
+      device_id: deviceStore.deviceId,
       conversation_id: currentConvId.value ?? undefined,
       message: text,
     });
@@ -163,10 +172,6 @@ async function scrollToBottom() {
   if (messagesRef.value) {
     messagesRef.value.scrollTop = messagesRef.value.scrollHeight;
   }
-}
-
-function handleLogout() {
-  userStore.logout();
 }
 
 onMounted(async () => {
@@ -210,9 +215,24 @@ onMounted(async () => {
 .conv-item:hover { background: #f5f7fa; }
 .conv-item.active { background: #ecf5ff; color: #409eff; }
 .conv-title {
+  flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.conv-delete {
+  display: none;
+  margin-left: auto;
+  font-size: 14px;
+  color: #c0c4cc;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.conv-item:hover .conv-delete {
+  display: inline-flex;
+}
+.conv-delete:hover {
+  color: #f56c6c;
 }
 .sidebar-footer {
   padding: 12px 16px;

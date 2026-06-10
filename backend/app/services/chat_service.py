@@ -77,3 +77,33 @@ async def get_device_emotion_trends(db: AsyncSession, device_id: str, limit: int
         .limit(limit)
     )
     return list(result.scalars().all())
+
+
+async def delete_conversation(db: AsyncSession, conversation_id: int) -> bool:
+    """删除会话及其关联的消息和情感记录"""
+    result = await db.execute(
+        select(Conversation).where(Conversation.id == conversation_id)
+    )
+    conv = result.scalar_one_or_none()
+    if conv is None:
+        return False
+
+    # 删除关联的情感记录
+    msg_ids_result = await db.execute(
+        select(Message.id).where(Message.conversation_id == conversation_id)
+    )
+    msg_ids = [row[0] for row in msg_ids_result.all()]
+    if msg_ids:
+        await db.execute(
+            EmotionRecord.__table__.delete().where(EmotionRecord.message_id.in_(msg_ids))
+        )
+
+    # 删除关联的消息
+    await db.execute(
+        Message.__table__.delete().where(Message.conversation_id == conversation_id)
+    )
+
+    # 删除会话
+    await db.delete(conv)
+    await db.commit()
+    return True

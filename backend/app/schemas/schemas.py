@@ -1,26 +1,6 @@
 from pydantic import BaseModel, Field
 
 
-# ===== Auth =====
-class LoginRequest(BaseModel):
-    username: str
-    password: str
-
-
-class TokenResponse(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
-    username: str
-    is_admin: bool = False
-
-
-class UserInfo(BaseModel):
-    id: int
-    username: str
-    nickname: str
-    is_admin: bool
-
-
 # ===== Chat =====
 class ChatRequest(BaseModel):
     device_id: str = Field(..., min_length=1, max_length=100)

@@ -15,18 +15,6 @@ class Base(DeclarativeBase):
     pass
 
 
-class User(Base):
-    """???"""
-    __tablename__ = "users"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    username = Column(String(50), unique=True, nullable=False, index=True)
-    hashed_password = Column(String(255), nullable=False)
-    nickname = Column(String(100), default="")
-    is_admin = Column(Integer, default=0, comment="1=admin")
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
-
-
 class Conversation(Base):
     __tablename__ = "conversations"
     id = Column(Integer, primary_key=True, autoincrement=True)

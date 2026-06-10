@@ -4,7 +4,7 @@ services:
     container_name: emotion-chat-db
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_ROOT_PASSWORD: 1234
       MYSQL_DATABASE: emotion_chat
       MYSQL_CHARACTER_SET_SERVER: utf8mb4
       MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
@@ -27,13 +27,13 @@ services:
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: "mysql+aiomysql://root:root123@db:3306/emotion_chat?charset=utf8mb4"
+      DATABASE_URL: "mysql+aiomysql://root:1234@db:3306/emotion_chat?charset=utf8mb4"
       DEEPSEEK_API_KEY: ""
       DEEPSEEK_API_BASE: "https://api.deepseek.com"
-      DEEPSEEK_MODEL: "deepseek-chat"
+      DEEPSEEK_MODEL: "deepseek-v4-flash"
       DEEPSEEK_API_BASE_URL: "https://api.deepseek.com"
     ports:
-      - "8000:8000"
+      - "8002:8002"
 
   frontend:
     build:
