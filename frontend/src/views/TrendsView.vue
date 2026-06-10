@@ -27,10 +27,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick } from "vue";
 import { useRouter } from "vue-router";
+import { useDeviceStore } from "@/stores/user";
 import { emotionApi } from "@/api";
 import * as echarts from "echarts";
 
 const router = useRouter();
+const deviceStore = useDeviceStore();
 const loading = ref(false);
 const trends = ref<any[]>([]);
 const chartRef = ref<HTMLElement | null>(null);
@@ -98,7 +100,7 @@ function renderChart() {
 onMounted(async () => {
   loading.value = true;
   try {
-    const res = await emotionApi.trends();
+    const res = await emotionApi.trends(deviceStore.getDeviceId());
     trends.value = res.data;
     await nextTick();
     renderChart();
