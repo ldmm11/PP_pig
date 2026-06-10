@@ -160,7 +160,7 @@ async function sendMessage() {
     });
     currentConvId.value = res.data.conversation_id;
     inputText.value = "";
-    await loadMessages(currentConvId.value);
+    if (currentConvId.value !== null) await loadMessages(currentConvId.value);
     await loadConversations();
   } finally {
     sending.value = false;
