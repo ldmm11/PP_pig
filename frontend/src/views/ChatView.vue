@@ -3,7 +3,17 @@
     <!-- Sidebar -->
     <div class="sidebar">
       <div class="sidebar-header">
+        <PigCharacter
+          :emotion="currentEmotion"
+          :size="120"
+          @click="onPigClick"
+        />
         <h3>楚楚的猪猪小王</h3>
+        <div v-if="currentEmotion" class="current-mood">
+          <el-tag :type="moodTagType" size="small" effect="dark">
+            {{ moodLabel }}
+          </el-tag>
+        </div>
       </div>
       <div class="new-chat">
         <el-button type="primary" style="width:100%" @click="startNewChat">
@@ -70,10 +80,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from "vue";
+import { ref, computed, onMounted, nextTick } from "vue";
 import { useRouter } from "vue-router";
 import { useDeviceStore } from "@/stores/user";
 import { chatApi } from "@/api";
+import PigCharacter from "@/components/PigCharacter.vue";
 
 const router = useRouter();
 const deviceStore = useDeviceStore();
@@ -85,29 +96,39 @@ const inputText = ref("");
 const sending = ref(false);
 const messagesRef = ref<HTMLElement | null>(null);
 
+const currentEmotion = ref("calm");
+
 const emotionLabelMap: Record<string, string> = {
   happy: "开心",
   aggrieved: "委屈",
   irritated: "烦躁",
   anxious: "焦虑",
   lonely: "孤单",
-  tired: "第惫",
+  tired: "疲惫",
   angry: "生气",
   calm: "平淡",
 };
 
+const moodTypeMap: Record<string, string> = {
+  happy: "success",
+  aggrieved: "warning",
+  irritated: "warning",
+  anxious: "warning",
+  lonely: "info",
+  tired: "info",
+  angry: "danger",
+  calm: "",
+};
+
 function emotionTagType(label: string): string {
-  const map: Record<string, string> = {
-    happy: "success",
-    aggrieved: "warning",
-    irritated: "warning",
-    anxious: "warning",
-    lonely: "info",
-    tired: "info",
-    angry: "danger",
-    calm: "",
-  };
-  return map[label] || "";
+  return moodTypeMap[label] || "";
+}
+
+const moodTagType = computed(() => moodTypeMap[currentEmotion.value] || "");
+const moodLabel = computed(() => emotionLabelMap[currentEmotion.value] || "");
+
+function onPigClick() {
+  // 点击小猪时的额外响应
 }
 
 async function loadConversations() {
@@ -121,6 +142,10 @@ async function loadMessages(convId: number) {
   try {
     const res = await chatApi.messages(convId);
     messages.value = res.data;
+    const lastMsg = res.data.filter((m: any) => m.role === "assistant").slice(-1)[0];
+    if (lastMsg?.emotion_label) {
+      currentEmotion.value = lastMsg.emotion_label;
+    }
     await scrollToBottom();
   } catch { /* ignore */ }
 }
@@ -134,6 +159,7 @@ async function startNewChat() {
   currentConvId.value = null;
   messages.value = [];
   inputText.value = "";
+  currentEmotion.value = "calm";
   await loadConversations();
 }
 
@@ -143,6 +169,7 @@ async function removeConversation(convId: number) {
     if (currentConvId.value === convId) {
       currentConvId.value = null;
       messages.value = [];
+      currentEmotion.value = "calm";
     }
     await loadConversations();
   } catch { /* ignore */ }
@@ -159,6 +186,9 @@ async function sendMessage() {
       message: text,
     });
     currentConvId.value = res.data.conversation_id;
+    if (res.data.emotion_label) {
+      currentEmotion.value = res.data.emotion_label;
+    }
     inputText.value = "";
     if (currentConvId.value !== null) await loadMessages(currentConvId.value);
     await loadConversations();
@@ -195,8 +225,19 @@ onMounted(async () => {
 .sidebar-header {
   padding: 16px;
   border-bottom: 1px solid #e4e7ed;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
 }
-.sidebar-header h3 { margin: 0; font-size: 16px; }
+.sidebar-header h3 {
+  margin: 4px 0 0 0;
+  font-size: 15px;
+  color: #303133;
+}
+.current-mood {
+  margin-top: 2px;
+}
 .new-chat { padding: 12px 16px; }
 .conv-list {
   flex: 1;
